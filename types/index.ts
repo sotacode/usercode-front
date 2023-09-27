@@ -1,5 +1,9 @@
-import {SVGProps} from "react";
 
-export type IconSvgProps = SVGProps<SVGSVGElement> & {
-  size?: number;
-};
+
+export interface FormData {
+    productName: string;
+    category: string;
+    price: string;
+    notice: string;
+    images: Array<{ title: string; file: File }>;
+  }
