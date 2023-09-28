@@ -8,12 +8,12 @@ import { useEffect, useState } from "react";
 
 
 export default function IndexPage() {
-	const [data, setData] = useState<any>([]);
-	const [category, setCategory] = useState<any>(new Set<string>([]));
+	const [data, setData] = useState([]);
+	const [category, setCategory] = useState<any>(new Set([]));
 	const [nombre, setNombre] = useState<string>("");
 	const [precio, setPrecio] = useState<string>("");
 	const [aviso, setAviso] = useState("Normal");
-	const [showError, setShowError] = useState<Boolean>(false);
+	const [showError, setShowError] = useState<any>(false);
 	const [errorForm, setErrorForm] = useState<string[] | string>([]);
 
 
@@ -69,10 +69,15 @@ export default function IndexPage() {
 			formData.append('images', JSON.stringify(metadataImages));
 
 			const response = await axios.post('http://localhost:3001/api/products', formData);
+			setCategory(new Set([]))
+			setNombre("")
+			setPrecio("")
+			setAviso("Normal")
+			setImages([])
 		} catch (error: any) {
 			setShowError(true);
-			console.log(error.response.data.message)
-			setErrorForm(error.response.data.message);
+			setErrorForm(error.response?.data?.message);
+			if(!error.response?.data?.message) setErrorForm([`Verifique que el servidor este levantado`]);
 			console.error(error);
 		}
 	}
