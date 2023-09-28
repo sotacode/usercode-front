@@ -1,19 +1,20 @@
 import { createProduct, fetchData } from "@/common/axios";
 import { title } from "@/components/primitives";
 import DefaultLayout from "@/layouts/default";;
-import { Button, Divider, Input, Radio, RadioGroup, Select, SelectItem, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Divider, Input, Radio, RadioGroup, Select, SelectItem, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
 
 
 export default function IndexPage() {
-	const [formData, setFormData] = useState(new FormData());
 	const [data, setData] = useState<any>([]);
 	const [category, setCategory] = useState<any>(new Set<string>([]));
 	const [nombre, setNombre] = useState<string>("");
 	const [precio, setPrecio] = useState<string>("");
 	const [aviso, setAviso] = useState("Normal");
+	const [showError, setShowError] = useState<Boolean>(false);
+	const [errorForm, setErrorForm] = useState<string[] | string>([]);
 
 
 	const handleSelectionCategoryChange = (e: any) => {
@@ -50,14 +51,7 @@ export default function IndexPage() {
 	};
 
 	const handleSumbitProduct = async () => {
-		let dataToRequest = new FormData();
-		console.log({
-			nombre,
-			category,
-			precio,
-			aviso,
-			images
-		})
+		setShowError(false)
 		try {
 			const formData = new FormData();
 			formData.append('name', nombre);
@@ -65,23 +59,22 @@ export default function IndexPage() {
 			formData.append('notification', aviso);
 			formData.append('price', precio);
 
-			let metadataImages: any[] = [] 
-			if(images.length>0){
-				images.forEach((image)=>{
-					console.log(image)
-					metadataImages.push({title: image.title, imageName: image.file.name})
+			let metadataImages: any[] = []
+			if (images.length > 0) {
+				images.forEach((image) => {
+					metadataImages.push({ title: image.title, imageName: image.file.name })
 					formData.append("files", image.file);
 				})
 			}
-			console.log(JSON.stringify(metadataImages))
 			formData.append('images', JSON.stringify(metadataImages));
-		
+
 			const response = await axios.post('http://localhost:3001/api/products', formData);
-		
-			console.log(JSON.stringify(response.data));
-		  } catch (error) {
+		} catch (error: any) {
+			setShowError(true);
+			console.log(error.response.data.message)
+			setErrorForm(error.response.data.message);
 			console.error(error);
-		  }
+		}
 	}
 
 
@@ -102,91 +95,111 @@ export default function IndexPage() {
 				<div className="inline-block max-w-lg text-center justify-center">
 					<h1 className={title()}>Entrevista técnica USERCODE&nbsp;</h1>
 				</div>
-				<div className="w-full sm:max-w-screen-sm">
-					<Input
-						className="mb-5"
-						label="Nombre"
-						placeholder="Nombre"
-						value={nombre}
-						onValueChange={setNombre}
-					/>
-					<div className="mb-5">
-						<Select
-							label="Categoría"
-							variant="faded"
-							placeholder="Seleciona una categoría"
-							selectedKeys={category}
-							className="max-w-xs"
-							onChange={handleSelectionCategoryChange}
-						>
-							<SelectItem key={"Entretención"} value="Entretención">
-								Entretención
-							</SelectItem>
-							<SelectItem key={"Videojuegos"} value="Videojuegos">
-								Videojuegos
-							</SelectItem>
-							<SelectItem key={"Smart home"} value="Smart home">
-								Smart home
-							</SelectItem>
+				<Card className="w-full sm:max-w-screen-sm">
+					<CardHeader className="flex flex-col items-center gap-3">
+						<div className="flex flex-col">
+							<p className="text-md">Agrega tu producto</p>
+						</div>
+					</CardHeader>
+					<Divider />
+					<CardBody>
+						<div className="w-full">
+							<Input
+								className="mb-5"
+								label="Nombre"
+								placeholder="Nombre"
+								value={nombre}
+								onValueChange={setNombre}
+							/>
+							<div className="mb-5">
+								<Select
+									label="Categoría"
+									variant="faded"
+									placeholder="Seleciona una categoría"
+									selectedKeys={category}
+									className="max-w-xs"
+									onChange={handleSelectionCategoryChange}
+								>
+									<SelectItem key={"Entretención"} value="Entretención">
+										Entretención
+									</SelectItem>
+									<SelectItem key={"Videojuegos"} value="Videojuegos">
+										Videojuegos
+									</SelectItem>
+									<SelectItem key={"Smart home"} value="Smart home">
+										Smart home
+									</SelectItem>
 
-						</Select>
-					</div>
-					<div className="mb-5">
-						<Input
-							className="mb-5"
-							label="Precio"
-							placeholder="Precio"
-							value={precio}
-							onValueChange={setPrecio}
-						/>
-					</div>
-					<div className="mb-5">
-						<RadioGroup
-							label="Aviso"
-							orientation="horizontal"
-							value={aviso}
-							onValueChange={setAviso}
-						>
-							<Radio value="Destacado">Destacado</Radio>
-							<Radio value="Normal">Normal</Radio>
-						</RadioGroup>
-					</div>
-					<div className="mb-5">
-						<label>Agregar Imágenes</label>
-						<br />
-						<input type="file" accept="image/*" multiple onChange={handleImageChange} />
-						{images.map((image, index) => (
-							<div key={index} className="mb-3 flex items-center">
-								<img
-									src={URL.createObjectURL(image.file)} // Crea una URL temporal para la vista previa
-									alt={`Imagen ${index + 1}`}
-									style={{ maxWidth: '100px', maxHeight: '100px', marginRight: '10px' }}
-								/>
-								<div className="flex items-center justify-center">
-									<input
-										placeholder="Título de la Imagen"
-										value={image.title}
-										onChange={(e: any) => handleImageTitleChange(index, e.target.value)}
-									/>
-									<Button
-										color="danger"
-										onClick={() => handleRemoveImage(index)}
-										className="ml-2 p-1 bg-red-500 text-white rounded"
-									>
-										Eliminar
-									</Button>
-								</div>
+								</Select>
 							</div>
+							<div className="mb-5">
+								<Input
+									className="mb-5"
+									label="Precio"
+									placeholder="Precio"
+									value={precio}
+									onValueChange={setPrecio}
+								/>
+							</div>
+							<div className="mb-5">
+								<RadioGroup
+									label="Aviso"
+									orientation="horizontal"
+									value={aviso}
+									onValueChange={setAviso}
+								>
+									<Radio value="Destacado">Destacado</Radio>
+									<Radio value="Normal">Normal</Radio>
+								</RadioGroup>
+							</div>
+							<div className="mb-5">
+								<h2 className="text-md">Agregar Imágenes</h2>
+								<br />
+								<input type="file" accept="image/*" multiple onChange={handleImageChange} />
+								{images.map((image, index) => (
+									<div key={index} className="m-3 flex items-center">
+										<img
+											src={URL.createObjectURL(image.file)} // Crea una URL temporal para la vista previa
+											alt={`Imagen ${index + 1}`}
+											style={{ maxWidth: '100px', maxHeight: '100px', marginRight: '10px' }}
+										/>
+										<div className="flex items-center justify-center">
+											<Input
+												placeholder="Título de la Imagen"
+												value={image.title}
+												onChange={(e: any) => handleImageTitleChange(index, e.target.value)}
+											/>
+											<Button
+												color="danger"
+												onClick={() => handleRemoveImage(index)}
+												className="ml-4 bg-red-500 text-white rounded"
+											>
+												Eliminar
+											</Button>
+										</div>
+									</div>
 
-						))}
-					</div>
+								))}
+							</div>
+							{showError &&
+								(
+									(Array.isArray(errorForm) &&
+										errorForm.map((message) => {
+											return <p className="text-md text-red-600">{message}</p>
+										}))
+									||
+									(typeof errorForm === "string" && <p className="text-md text-red-600">{errorForm}</p>)
+								)
+							}
 
-					<div className="mb-5 flex flex-col items-center">
-						<Button color="primary" variant="solid" size="lg" onClick={handleSumbitProduct}>
-							Subir Producto
-						</Button>
-					</div>
-				</div>
+							<div className="mb-5 flex flex-col items-center">
+								<Button color="primary" variant="solid" size="lg" onClick={handleSumbitProduct}>
+									Subir Producto
+								</Button>
+							</div>
+						</div>
+					</CardBody>
+				</Card>
 				<Divider className="max-w-[1200px] my-10" />
 
 				<div className="w-full sm:max-w-screen-lg">
@@ -205,7 +218,7 @@ export default function IndexPage() {
 									<TableCell>{product.name}</TableCell>
 									<TableCell>{product.category}</TableCell>
 									<TableCell>{product.price}</TableCell>
-									<TableCell>{product.notification} Reichert</TableCell>
+									<TableCell>{product.notification}</TableCell>
 									<TableCell>
 										<Button color="primary">
 											Ver
